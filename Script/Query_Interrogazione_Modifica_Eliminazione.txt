@@ -1,0 +1,156 @@
+Query di Interrogazione:
+
+1.	Visualizzare la data di scadenza dell’abbonamento riferito all’abbonato con CF=’RGGFPP99T30F257C’
+
+SELECT ABB.Data_Fine
+FROM ABBONAMENTO AS ABB, ABBONATO AS ABT, PERSONA AS PRS
+WHERE ABB.CF_Abbonato='RGGFPP99T30F257C'
+AND ABB.CF_Abbonato= ABT.CF
+AND ABT.CF= PRS.CF
+
+2.	Visualizzare il nome e cognome degli abbonati che hanno un abbonamento scaduto (data fine abbonamento < data attuale)
+
+SELECT PRS.Nome, Prs.Cognome
+FROM PERSONA AS PRS, ABBONATO AS ABT, ABBONAMENTO AS ABB
+WHERE PRS.CF= ABB.CF_Abbonato
+AND ABB.CF_Abbonato=ABT.CF
+AND ABB.Data_Fine > NOW()
+
+3.	Visualizzare numero di sala, orario e giorno in cui il trainer di nome ‘Matteo Ganassi’ dovrà svolgere il suo corso
+
+SELECT ORA.Numero_Sala, ORA.Giorno, ORA.Ora
+FROM ORARIO AS ORA, CORSO AS CRS
+WHERE ORA.Codice_Corso =CRS.Codice_Corso
+AND CRS.Codice_Corso =
+		(
+		SELECT CRS.Codice_Corso
+		FROM CORSO AS CRS,TRAINER AS TR,PERSONA AS PRS
+		WHERE ((PRS.Nome='Matteo' AND PRS.Cognome='Ganassi'))
+		AND PRS.CF=TR.CF
+		AND CRS.CF_Trainer=TR.CF
+	)
+ 
+4.	Visualizzare nome e cognome dei trainer che hanno la qualifica per la Sala Pesi
+
+SELECT PRS.Nome,PRS.Cognome
+FROM PERSONA AS PRS, QUALIFICA AS QU
+WHERE Descrizione='Sala Pesi'
+AND PRS.CF= QU.CF
+
+5.	Visualizzare gli esercizi della scheda d’allenamento (solo il primo allenamento della scheda) dell’abbonato di nome ‘Filippo Reggiani’
+
+
+SELECT CS.Nome_Esercizio
+FROM COMPOSIZIONE_SCHEDA AS CS
+WHERE CS.Numero_Allenamento='1'
+AND CS.Id_Scheda=
+                              (
+                              SELECT SA.Id_Scheda
+                              FROM PERSONA AS PRS, ABBONATO AS ABB, SCHEDA_ALLENAMENTO AS SA
+                              WHERE PRS.Nome='Filippo' AND PRS.Cognome='Reggiani'
+                              AND PRS.CF= ABB.CF
+                              AND ABB.CF=SA.CF_Abbonato
+                               )
+
+6.	Selezionare il codice fiscale degli abbonati che non hanno un abbonamento di tipo annuale
+
+SELECT ABB.CF_Abbonato
+FROM ABBONAMENTO AS ABB
+WHERE ABB.Tipologia NOT IN
+	(SELECT ABB.Tipologia
+	FROM ABBONAMENTO AS ABB
+	WHERE ABB.Tipologia='Annuale')
+
+	
+
+7.	Selezionare l’identificativo delle schede fatte dal trainer ‘Tolomei Francesco’ e relativa data di scadenza
+
+SELECT SA.Id_Scheda, SA.Data_fine
+FROM PERSONA AS PRS, SCHEDA_ALLENAMENTO AS SA
+WHERE PRS.Nome='Francesco' AND PRS.Cognome='Tolomei'
+AND PRS.CF=SA.CF_Trainer
+
+8.	Selezionare il Prezzo e il tipo dell’abbonamento più costoso 
+
+SELECT PA.Tipologia, PA.Costo
+FROM PREZZO_ABBONAMENTO AS PA
+WHERE PA.Costo >= ALL
+	(SELECT Costo
+	FROM PREZZO_ABBONAMENTO)
+
+9.	Selezionare il nome e cognome degli abbonati che devono svolgere l’esercizio ‘Crunch Base’ nel primo allenamento della loro scheda
+
+SELECT PRS.Nome,PRS.Cognome
+FROM PERSONA AS PRS
+WHERE PRS.CF IN(
+	SELECT SA.CF_Abbonato
+	FROM COMPOSIZIONE_SCHEDA AS CS, SCHEDA_ALLENAMENTO AS SA
+	WHERE CS.Nome_esercizio='Crunch Base' AND CS.Numero_Allenamento='1'
+	AND CS.Id_Scheda=SA.Id_Scheda
+)
+	
+10.	 Selezionare l’email degli abbonati che hanno uno sconto tra il 5 e il 10%
+
+SELECT ABB.Email
+FROM ABBONATO AS ABB
+WHERE ABB.Sconto BETWEEN '5' AND '10'
+
+---------------------------------------------------------------------
+
+Query di Modifica:
+
+1.	Modificare il numero di telefono della persona con CF=’ FRNLRA77P63B539R’ da ‘3668997117’ a ‘339151987’
+
+UPDATE TELEFONO_PERSONA
+SET Numero='339151987'
+WHERE CF='FRNLRA77P63B539R'
+
+2.	Modificare l’indirizzo di residenza  dell’abbonato avente come mail ‘ernestotaddei@gmail.com’ da ‘via remo 12’ a ‘via Petrarca 79’
+
+UPDATE ABBONATO
+SET Indirizzo='via Petrarca 79'
+WHERE Email='ernestotaddei@gmail.com'
+
+3.	Modificare l’abbonamento con id=’1001’ avente data inizio=’2020-02-13’, data fine=’2020-03-13’ e di tipologia=’Mensile’ con un nuovo abbonamento avente data inizio=’2021-07-15’, data fine=’2022-07-15’ e tipologia=’Annuale’
+
+UPDATE ABBONAMENTO
+SET Data_inizio='2021-07-15', Data_fine='2022-07-15', Tipologia='Annuale'
+WHERE Id_Abbonamento='1001'
+
+
+4.	Modificare la scheda di allenamento con id=’1001’ avente data inizio=’2020-03-01’ e data fine=’2020-06-01’ con una nuova data di inizio=’2021-03-04’ e data_fine=’2021-07-10’
+
+UPDATE SCHEDA_ALLENAMENTO
+SET Data_inizio='2021-03-04', Data_fine='2021-07-10'
+WHERE Id_Scheda='1001'
+
+5.	Modificare l’orario e la sala del corso con codice corso=’5000’ che si sarebbe tenuto il giorno Martedì, alle ore 15:00 e nella sala 55, cambiando la sala con la 44, e il nuovo orario alle 15:00
+
+UPDATE ORARIO
+SET Numero_Sala='44', Ora='18:00'
+WHERE Codice_corso='5000' AND Giorno='Martedì' AND Ora='15:00' AND Numero_Sala='55'
+
+
+----------------------------------------------------
+
+Query di Eliminazione:
+
+1.	Eliminazione del/dei numeri di telefono relativi alla persona con CF=’RGGFPP99T30F257C’
+
+DELETE FROM TELEFONO_PERSONA
+WHERE CF='RGGFPP99T30F257C'
+
+2.	Eliminazione dell’orario del corso che si svolge nella sala 44, il giorno Mercoledì alle 14:00
+
+DELETE FROM ORARIO
+WHERE Numero_Sala='44' AND Giorno='Mercoledì' AND Ora='14:00'
+
+3.	Eliminazione dalla scheda con id=’1002’ dell’esercizio ‘Crunch Obliquo’
+
+DELETE FROM COMPOSIZIONE_SCHEDA
+WHERE Id_Scheda='1002' AND Nome_Esercizio='Crunch Obliquo'
+
+4.	Eliminazione della chiusura effettuata Mercoledì del trainer con CF='DBRFCS87P63A944Q'
+
+DELETE FROM CHIUSURA_SETTIMANALE
+WHERE Giorno='Mercoledì' AND CF_Trainer='DBRFCS87P63A944Q'
